@@ -1,15 +1,8 @@
 # PenDoc
 
-```
-    ____             ____             
-   / __ \___  ____  / __ \____  _____
-  / /_/ / _ \/ __ \/ / / / __ \/ ___/
- / ____/  __/ / / / /_/ / /_/ / /__  
-/_/    \___/_/ /_/_____/\____/\___/  
-                                      
-Because manually screenshotting 500 web apps 
-is NOT how you want to spend your Friday.
-```
+![PenDoc Banner](20ea59b5-c9ff-4ebe-986b-55f1ac81e79c.png)
+
+**Because manually screenshotting 500 web apps is NOT how you want to spend your Friday.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Internal-green.svg)](LICENSE)
