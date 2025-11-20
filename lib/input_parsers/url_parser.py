@@ -12,7 +12,8 @@ class URLParser:
     def __init__(self, config: dict):
         self.config = config
         self.logger = logging.getLogger(__name__)
-        self.port_checker = QuickPortChecker(timeout=2.0, max_workers=10)
+        # Fast port checker: 1s timeout, 20 concurrent checks
+        self.port_checker = QuickPortChecker(timeout=1.0, max_workers=20)
         self.auto_discover_ports = config.get('input', {}).get('auto_discover_ports', True)
     
     def parse(self, file_path: str) -> list:
@@ -123,7 +124,8 @@ class URLParser:
                             'source_file': file_path,
                             'line_number': line_num,
                             'domain': parsed.netloc,
-                            'scheme': parsed.scheme
+                            'scheme': parsed.scheme,
+                            'port': parsed.port if parsed.port else (443 if parsed.scheme == 'https' else 80)
                         })
                 except Exception as e:
                     self.logger.warning(f"Error parsing URL at line {line_num} ({line}): {e}")

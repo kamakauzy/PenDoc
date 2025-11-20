@@ -340,6 +340,25 @@ class ReportBuilder:
             font-size: 0.8em;
         }
         
+        .port-badge {
+            background: var(--warning-color);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .discovered-badge {
+            background: var(--success-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-left: 5px;
+        }
+        
         .error-message {
             color: var(--danger-color);
             font-style: italic;
@@ -464,7 +483,15 @@ class ReportBuilder:
                     {% endif %}
                     
                     <div class="target-info">
-                        <div class="target-url">{{ target.url }}</div>
+                        <div class="target-url">
+                            {{ target.url }}
+                            {% if target.port %}
+                            <span class="port-badge">Port {{ target.port }}</span>
+                            {% endif %}
+                            {% if target.discovered_port %}
+                            <span class="discovered-badge">AUTO-DISCOVERED</span>
+                            {% endif %}
+                        </div>
                         
                         {% if show_metadata %}
                         <div class="target-metadata">
@@ -479,6 +506,13 @@ class ReportBuilder:
                             <div class="metadata-item">
                                 <span class="metadata-label">Status:</span>
                                 {{ target.http_status }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if target.port %}
+                            <div class="metadata-item">
+                                <span class="metadata-label">Port:</span>
+                                {{ target.port }} ({{ target.scheme }})
                             </div>
                             {% endif %}
                             
