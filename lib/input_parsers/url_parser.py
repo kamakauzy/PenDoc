@@ -24,40 +24,56 @@ class URLParser:
         """
         targets = []
         
+        # Try multiple encodings
+        encodings = ['utf-8', 'utf-8-sig', 'latin-1', 'iso-8859-1', 'windows-1252', 'cp1252']
+        content = None
+        
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                self.logger.debug(f"Successfully read file with {encoding} encoding")
+                break
+            except (UnicodeDecodeError, LookupError):
+                continue
+        
+        if content is None:
+            self.logger.error(f"Could not decode file {file_path} with any supported encoding")
+            return []
+        
         try:
-            with open(file_path, 'r') as f:
-                for line_num, line in enumerate(f, 1):
-                    line = line.strip()
-                    
-                    # Skip empty lines and comments
-                    if not line or line.startswith('#'):
+            for line_num, line in enumerate(content.splitlines(), 1):
+                line = line.strip()
+                
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                
+                # Add protocol if missing
+                if not line.startswith(('http://', 'https://')):
+                    protocol = self.config['input']['default_protocol']
+                    url = f"{protocol}://{line}"
+                else:
+                    url = line
+                
+                # Validate URL
+                try:
+                    parsed = urlparse(url)
+                    if not parsed.netloc:
+                        self.logger.warning(f"Invalid URL at line {line_num}: {line}")
                         continue
                     
-                    # Add protocol if missing
-                    if not line.startswith(('http://', 'https://')):
-                        protocol = self.config['input']['default_protocol']
-                        url = f"{protocol}://{line}"
-                    else:
-                        url = line
-                    
-                    # Validate URL
-                    try:
-                        parsed = urlparse(url)
-                        if not parsed.netloc:
-                            self.logger.warning(f"Invalid URL at line {line_num}: {line}")
-                            continue
-                        
-                        targets.append({
-                            'url': url,
-                            'source': 'url_list',
-                            'source_file': file_path,
-                            'line_number': line_num,
-                            'domain': parsed.netloc,
-                            'scheme': parsed.scheme
-                        })
-                    except Exception as e:
-                        self.logger.warning(f"Error parsing URL at line {line_num}: {e}")
-                        continue
+                    targets.append({
+                        'url': url,
+                        'source': 'url_list',
+                        'source_file': file_path,
+                        'line_number': line_num,
+                        'domain': parsed.netloc,
+                        'scheme': parsed.scheme
+                    })
+                except Exception as e:
+                    self.logger.warning(f"Error parsing URL at line {line_num}: {e}")
+                    continue
             
             self.logger.info(f"Parsed {len(targets)} URLs from {file_path}")
             return targets
