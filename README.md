@@ -1,129 +1,144 @@
 # PenDoc
 
-**Automated penetration testing documentation tool for capturing screenshots and metadata from web applications**
+```
+    ____             ____             
+   / __ \___  ____  / __ \____  _____
+  / /_/ / _ \/ __ \/ / / / __ \/ ___/
+ / ____/  __/ / / / /_/ / /_/ / /__  
+/_/    \___/_/ /_/_____/\____/\___/  
+                                      
+Because manually screenshotting 500 web apps 
+is NOT how you want to spend your Friday.
+```
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Internal-green.svg)](LICENSE)
 
-## Overview
+## What Is This?
 
-PenDoc is a fully automated tool designed to streamline penetration testing documentation by capturing screenshots and metadata from web applications. It addresses the tedious and time-consuming task of manually documenting hundreds of web targets during security assessments.
+PenDoc is your automated screenshot slave for penetration testing. It captures screenshots and metadata from web applications so you don't have to manually document every single target like it's 2005.
 
-**Problem it solves:**
-- Manual screenshot capture is slow and inconsistent
-- Processing hundreds of targets takes hours
-- Creating organized reports requires significant effort
-- Visual documentation is essential for pen test reports
+**The Problem:**
+- Manually screenshotting 500 targets? That's 8 hours of your life you're not getting back.
+- Your report needs visual evidence but you'd rather be, you know, actually hacking things.
+- Burp Suite doesn't automatically organize screenshots by domain because... reasons.
+- Your pen test report looks like garbage without screenshots, but taking them is soul-crushing.
 
-**PenDoc automates all of this.**
+**The Solution:**
+Point PenDoc at your targets, go grab coffee (or three), come back to organized screenshots and a pretty HTML report. You're welcome.
 
 ## Features
 
-- 📸 **Automated Screenshots**: Full-page screenshots with configurable viewports
-- 🔌 **Multiple Input Sources**: Burp Suite, Nmap, subdomain enumeration, URL lists
-- 🔍 **Metadata Enrichment**: HTTP headers, status codes, technology detection, SSL analysis
-- 📊 **HTML Reports**: Modern, searchable, filterable gallery with dark mode
-- ⚡ **Concurrent Processing**: Fast parallel capture with progress tracking
-- 📱 **Multiple Viewports**: Desktop (default), tablet, and mobile screenshots
-- 🎯 **Smart Filtering**: Exclude static resources, pattern-based filtering
-- 🔒 **SSL Analysis**: Certificate information and expiration checking
+**Automated Screenshots**: Full-page screenshots because half a screenshot is useless
 
-## Quick Start
+**Multiple Input Sources**: Burp Suite, Nmap, subdomain lists, or just a plain old URL list. We don't judge your workflow.
 
-### Installation
+**Metadata Enrichment**: HTTP headers, status codes, tech detection, SSL analysis - all the metadata you forgot to document manually
+
+**HTML Reports**: Modern, searchable gallery with dark mode (because pen testers don't use light mode, let's be real)
+
+**Concurrent Processing**: Parallel capture with progress bars because watching paint dry is boring
+
+**Multiple Viewports**: Desktop (default), tablet, and mobile if you hate yourself enough to enable them
+
+**Smart Filtering**: Excludes .js, .css, .jpg, and other garbage you don't want screenshots of
+
+**SSL Analysis**: Certificate details because someone on your team will ask "is the cert valid?" and you'll look prepared
+
+## Installation (It's Not Rocket Surgery)
 
 ```bash
-# Clone repository
+# Clone this bad boy
 git clone https://github.com/kamakauzy/PenDoc.git
 cd PenDoc
 
-# Install dependencies
+# Install Python stuff
 pip install -r requirements.txt
 
-# Install Playwright browsers
+# Install Playwright browsers (yes, this downloads Chromium, deal with it)
 playwright install chromium
 ```
 
-### Basic Usage
+## Usage (The Easy Part)
 
 ```bash
-# From URL list
+# Got a URL list? Cool.
 python pendoc.py --urls urls.txt --output ./results
 
-# From Burp Suite sitemap
+# Burp Suite sitemap? Obviously.
 python pendoc.py --burp sitemap.xml --output ./results
 
-# From subdomain enumeration
+# Subdomain enumeration results? Hell yeah.
 python pendoc.py --subdomains subdomains.txt --output ./results
 
-# From Nmap scan
+# Nmap scan? We got you.
 python pendoc.py --nmap scan.xml --output ./results
 
-# Combine multiple sources
-python pendoc.py --urls urls.txt --burp sitemap.xml --subdomains subs.txt --output ./results
+# Why choose one when you can use ALL THE INPUTS?
+python pendoc.py --urls urls.txt --burp sitemap.xml --subdomains subs.txt --nmap scan.xml --output ./results
 ```
 
-### Quick Test
+## Quick Test (Prove It Works)
 
 ```bash
-# Windows
+# Windows users
 quicktest.bat
 
-# Manual test
+# Or if you like typing
 python test_pendoc.py
 python pendoc.py --urls examples/urls.txt --output test_output
 ```
 
-## Architecture
+## How It Works (For The Curious)
 
 ### Technology Stack
-- **Language**: Python 3.10+
-- **Browser Automation**: Playwright (Chromium)
-- **Report Generation**: Jinja2 templates
-- **Configuration**: YAML
-- **Async Processing**: asyncio for concurrent capture
+- **Python 3.10+**: Because we're not animals using Python 2
+- **Playwright**: Chromium automation that actually works
+- **Jinja2**: HTML templating because string concatenation is for masochists
+- **YAML**: Configuration that humans can read
+- **asyncio**: Concurrent processing because your time is valuable
 
-### Core Components
+### Architecture (If You Care)
 
 ```
 PenDoc/
-├── pendoc.py                    # Main CLI application
+├── pendoc.py                    # The main event
 ├── lib/
-│   ├── input_parsers/           # Modular input processing
-│   │   ├── url_parser.py       # Simple URL lists
-│   │   ├── burp_parser.py      # Burp Suite sitemap XML
-│   │   ├── subdomain_parser.py # Subdomain enumeration
-│   │   └── nmap_parser.py      # Nmap XML port scans
-│   ├── screenshot.py            # Playwright capture engine
-│   ├── enrichment.py            # Metadata collection
+│   ├── input_parsers/           # Parsers for all your weird input formats
+│   │   ├── url_parser.py       # Plain text URLs (exciting!)
+│   │   ├── burp_parser.py      # Burp Suite XML (less exciting!)
+│   │   ├── subdomain_parser.py # Subdomain lists (very exciting!)
+│   │   └── nmap_parser.py      # Nmap XML (moderately exciting!)
+│   ├── screenshot.py            # Where the magic happens
+│   ├── enrichment.py            # Makes your data look fancy
 │   └── report_builder.py        # HTML report generation
 ├── config/
-│   └── pendoc.yaml              # Configuration file
-└── examples/                     # Sample input files
+│   └── pendoc.yaml              # Tweak all the knobs
+└── examples/                     # Sample files so you can't screw up
 ```
 
-## Input Formats
+## Input Formats (We Support Everything)
 
-### 1. URL Lists (--urls)
-Simple text file with one URL per line:
+### URL Lists (--urls)
+One URL per line. Comments work too. We're not monsters.
 ```
 https://example.com
 https://admin.example.com/login
 http://192.168.1.100:8080
-# Comments are supported
+# This is a comment, genius
 ```
 
-### 2. Burp Suite Sitemap (--burp)
-Export from Burp Suite:
+### Burp Suite Sitemap (--burp)
 1. Target → Site map
 2. Right-click → "Save selected items"
 3. Save as XML
+4. Point PenDoc at it
 
-### 3. Subdomain Lists (--subdomains)
-Supports multiple formats:
-- **Plain text**: One subdomain per line
-- **CSV**: Domain in first column
-- **JSON**: Array or objects with 'domain' field
+### Subdomain Lists (--subdomains)
+We support everything because we love you:
+- Plain text (one per line)
+- CSV (domain in first column)
+- JSON (array or objects with 'domain' field)
 
 ```
 www.example.com
@@ -131,19 +146,19 @@ admin.example.com
 api.example.com
 ```
 
-### 4. Nmap XML (--nmap)
-XML output from Nmap port scans:
+### Nmap XML (--nmap)
+Run Nmap with XML output, feed it to PenDoc, profit.
 ```bash
 nmap -p- -sV -oX scan.xml target.com
 python pendoc.py --nmap scan.xml --output results/
 ```
 
-## Output
+## Output (The Good Stuff)
 
 ### Directory Structure
 ```
 output/
-├── index.html                    # Interactive HTML report
+├── index.html                    # Open this in a browser, be amazed
 ├── screenshots/
 │   ├── example.com/
 │   │   └── desktop/
@@ -153,60 +168,61 @@ output/
 │       └── desktop/
 │           └── login_20251120_153010.png
 └── metadata/
-    └── results.json              # Raw JSON data
+    └── results.json              # Raw data for the nerds
 ```
 
 ### HTML Report Features
-- Modern, responsive design with dark/light mode
-- Searchable and filterable by URL and status
-- Click-to-zoom screenshots
-- Grouped by domain
-- Statistics dashboard (success rate, status codes, technologies)
-- Metadata display (page titles, HTTP status, technologies)
+- Modern, responsive design (looks good on any device you shouldn't be pen testing from)
+- Dark mode by default (because you have good taste)
+- Searchable and filterable (find that one weird subdomain in seconds)
+- Click-to-zoom screenshots (because squinting is for chumps)
+- Grouped by domain (organized like you pretend your life is)
+- Statistics dashboard (numbers to make you look smart)
+- Metadata everywhere (page titles, HTTP status, tech stack, the works)
 
-## Configuration
+## Configuration (For The Control Freaks)
 
-Edit `config/pendoc.yaml` to customize:
+Edit `config/pendoc.yaml` to customize everything:
 
 ### Screenshots
 ```yaml
 screenshots:
   viewports:
-    desktop: { width: 1920, height: 1080 }
-    tablet: { width: 768, height: 1024 }
-    mobile: { width: 375, height: 667 }
-  capture_desktop: true      # Enable/disable viewports
-  capture_tablet: false
-  capture_mobile: false
-  full_page: true            # Full-page vs viewport only
-  timeout: 30                # Page load timeout (seconds)
-  wait_after_load: 2000      # Wait for JS rendering (ms)
+    desktop: { width: 1920, height: 1080 }  # Standard issue
+    tablet: { width: 768, height: 1024 }    # If you're into that
+    mobile: { width: 375, height: 667 }     # Masochist mode
+  capture_desktop: true      # Obviously
+  capture_tablet: false      # Probably not
+  capture_mobile: false      # Definitely not unless you like waiting
+  full_page: true            # Because half a page is useless
+  timeout: 30                # Seconds before giving up on slow sites
+  wait_after_load: 2000      # Let that janky JavaScript render
 ```
 
 ### Performance
 ```yaml
 performance:
-  concurrent_workers: 5      # Parallel screenshot captures
-  max_retries: 2            # Retry failed captures
-  retry_delay: 5            # Delay between retries (seconds)
+  concurrent_workers: 5      # More = faster, but your RAM will cry
+  max_retries: 2            # How many times to try before saying "screw it"
+  retry_delay: 5            # Seconds to wait before retry
 ```
 
 ### HTTP Settings
 ```yaml
 http:
-  follow_redirects: true
-  verify_ssl: false          # Disable SSL verification (pen testing)
-  user_agent: "Mozilla/5.0 ... PenDoc/1.0"
-  headers: {}               # Custom HTTP headers
+  follow_redirects: true    # Chase those 302s
+  verify_ssl: false         # It's pen testing, we live dangerously
+  user_agent: "Mozilla/5.0 ... PenDoc/1.0"  # Pretend we're a real browser
+  headers: {}               # Add custom headers if you're fancy
 ```
 
 ### Input Processing
 ```yaml
 input:
-  default_protocol: "https"
+  default_protocol: "https"  # HTTPS all the things (it's 2025)
   http_ports: [80, 8000, 8080, 8888, 3000, 5000]
   https_ports: [443, 8443, 9443]
-  exclude_patterns:         # Skip static resources
+  exclude_patterns:          # Don't screenshot this garbage
     - ".*\\.js$"
     - ".*\\.css$"
     - ".*\\.jpg$"
@@ -216,10 +232,10 @@ input:
 ### Enrichment
 ```yaml
 enrichment:
-  collect_headers: true      # HTTP response headers
-  detect_technologies: true  # Web servers, frameworks, WAF/CDN
-  collect_ssl_info: true     # SSL certificate details
-  interesting_headers:       # Headers to highlight
+  collect_headers: true      # HTTP headers (the good stuff)
+  detect_technologies: true  # "Is that... PHP? In 2025?"
+  collect_ssl_info: true     # Certificate details for the paranoid
+  interesting_headers:       # Headers worth highlighting
     - "Server"
     - "X-Powered-By"
     - "Content-Security-Policy"
@@ -229,52 +245,52 @@ enrichment:
 ```yaml
 report:
   title: "PenDoc - Penetration Testing Documentation"
-  group_by_domain: true
-  show_metadata: true
-  theme: "dark"              # "dark" or "light"
+  group_by_domain: true      # Organization is sexy
+  show_metadata: true        # All the juicy details
+  theme: "dark"              # Light mode is for psychopaths
 ```
 
-## Advanced Features
+## What PenDoc Actually Does
 
 ### Metadata Enrichment
-- **HTTP Information**: Status codes, headers, response timing, page titles
-- **Security Headers**: Server, X-Powered-By, CSP, X-Frame-Options, HSTS
-- **Technology Detection**: Web servers (Nginx, Apache, IIS), frameworks (PHP, ASP.NET, Express.js), CDN/WAF (Cloudflare, Sucuri)
-- **SSL/TLS Analysis**: Certificate information, issuer, validity period, expiration checking
+- **HTTP Information**: Status codes, headers, timing, page titles (the basics)
+- **Security Headers**: Server, X-Powered-By, CSP, X-Frame-Options, HSTS (the security stuff)
+- **Technology Detection**: Nginx? Apache? IIS? PHP? ASP.NET? We'll find it.
+- **SSL/TLS Analysis**: Certificate info, expiration dates, all that PKI nonsense
 
-### Error Handling
-- Graceful timeout handling
-- Automatic retry mechanism for transient failures
-- Detailed error messages in report
-- Continues processing on individual failures
+### Error Handling (Because Things Break)
+- Graceful timeout handling (won't rage quit on slow sites)
+- Automatic retry mechanism (tries again because we believe in second chances)
+- Detailed error messages (tells you what went wrong, not just "error")
+- Keeps processing even when individual targets fail (the show must go on)
 
-### Extensibility
-- Modular parser architecture (easy to add new input formats)
-- YAML-based configuration
-- Plugin-ready design
-- JSON export for automation
+### Extensibility (For The Tinkerers)
+- Modular parser architecture (add new input formats without crying)
+- YAML-based configuration (edit with any text editor like a civilized human)
+- Plugin-ready design (extend it, we dare you)
+- JSON export (automate all the things)
 
-## Use Cases
+## Use Cases (When You'd Use This)
 
-### 1. Reconnaissance Documentation
-- Screenshot all discovered subdomains
-- Visual inventory of target infrastructure
-- Identify interesting pages and applications
-- Create baseline for comparison
+### Reconnaissance Documentation
+- Screenshot all discovered subdomains (because you found 300 of them with subfinder)
+- Visual inventory of target infrastructure (pretty pictures for the report)
+- Identify interesting pages (admin panels, anyone?)
+- Create baseline for comparison (so you know when things change)
 
-### 2. Penetration Test Reports
-- Document application interfaces
-- Capture before/after exploitation
-- Show proof of access
-- Visual evidence for findings
+### Penetration Test Reports
+- Document application interfaces (screenshot everything)
+- Capture before/after exploitation (show your work)
+- Show proof of access (receipts or it didn't happen)
+- Visual evidence for findings (because screenshots > walls of text)
 
-### 3. Scope Verification
-- Confirm target URLs are accessible
-- Verify correct applications
-- Identify out-of-scope resources
-- Document testing boundaries
+### Scope Verification
+- Confirm target URLs are accessible (or not, that's important too)
+- Verify correct applications (make sure you're testing the right stuff)
+- Identify out-of-scope resources (don't accidentally hack the wrong thing)
+- Document testing boundaries (CYA documentation)
 
-### 4. Workflow Integration
+### Workflow Integration
 ```bash
 # Subdomain enumeration → PenDoc
 subfinder -d example.com -o subdomains.txt
@@ -285,11 +301,11 @@ nmap -iL targets.txt -p- -sV -oX scan.xml
 python pendoc.py --nmap scan.xml --output portscan/
 
 # Burp Suite testing → PenDoc
-# (Export sitemap from Burp)
+# (Export sitemap from Burp, you know how)
 python pendoc.py --burp sitemap.xml --output manual_test/
 ```
 
-### 5. Integration with Cronos Platform
+### Integration with Cronos Platform
 ```python
 from database import db_util
 
@@ -301,7 +317,7 @@ with open('urls.txt', 'w') as f:
     for host in hosts:
         f.write(f"{host['url']}\n")
 
-# Run PenDoc
+# Run PenDoc (automate all the documentation)
 import subprocess
 subprocess.run([
     'python', 'pendoc.py',
@@ -310,158 +326,165 @@ subprocess.run([
 ])
 ```
 
-## Performance
+## Performance (How Fast Is This Thing?)
 
-- **Speed**: ~5-10 targets/minute (depends on site response time)
-- **Concurrency**: 5 parallel workers (configurable up to 20+)
-- **Memory**: ~500MB-2GB (scales with concurrency)
-- **Network**: Efficient, reuses browser context
+- **Speed**: ~5-10 targets/minute (depends on how slow the target sites are, not our fault)
+- **Concurrency**: 5 parallel workers (configurable up to 20+ if your machine can handle it)
+- **Memory**: ~500MB-2GB (scales with concurrency and how much RAM you're willing to sacrifice)
+- **Network**: Efficient, reuses browser context (because we're not wasteful)
 
-### Optimization Tips
+### Optimization Tips (Make It Faster)
 
-1. **Concurrent Workers**: Start with 5, increase based on:
-   - Network bandwidth
-   - Target responsiveness
-   - Available system resources
+1. **Concurrent Workers**: Start with 5, go higher if:
+   - Your network can handle it
+   - The targets aren't slow as molasses
+   - Your laptop isn't from 2012
 
 2. **Timeout Values**:
-   - Fast networks: 15-20s
-   - Slow targets: 30-60s
-   - Very slow: 60-120s
+   - Fast networks: 15-20s (living life in the fast lane)
+   - Slow targets: 30-60s (patience, grasshopper)
+   - Very slow: 60-120s (make coffee, read a book)
 
 3. **Viewport Selection**:
-   - Desktop only: Fastest (default)
-   - All viewports: 3x slower but most complete
+   - Desktop only: Fastest (recommended for sanity)
+   - All viewports: 3x slower but looks impressive in reports
 
 4. **Resource Filtering**:
    - Use `exclude_patterns` for static files
-   - Reduces unnecessary captures
-   - Speeds up processing
+   - Skip the garbage, save time
+   - Your SSD will thank you
 
 5. **Batch Processing**:
-   - Split large target lists
-   - Run multiple instances for very large scans
+   - Split massive target lists
+   - Run multiple instances
+   - Divide and conquer
 
-## Common Issues
+## Common Issues (And How To Fix Them)
 
 ### Playwright not found
 ```bash
 playwright install chromium
+# That's it. That's the fix.
 ```
 
 ### SSL certificate errors
-Set `verify_ssl: false` in `config/pendoc.yaml`
+Set `verify_ssl: false` in `config/pendoc.yaml` (it's pen testing, we don't care about cert warnings)
 
 ### Timeouts on slow sites
-Increase `timeout` value in `config/pendoc.yaml`
+Increase `timeout` value in `config/pendoc.yaml` (give the slow sites more time to wake up)
 
 ### Out of memory
-Reduce `concurrent_workers` in `config/pendoc.yaml`
+Reduce `concurrent_workers` in `config/pendoc.yaml` (your laptop is crying for help)
 
 ### Import errors
 ```bash
 pip install -r requirements.txt
+# Did you skip the installation step? Come on.
 ```
 
-## Testing
+## Testing (Make Sure It Works)
 
-Run the included test suite to validate installation:
+Run the test suite to validate your installation isn't borked:
 
 ```bash
 python test_pendoc.py
 ```
 
-This validates:
-- ✓ All dependencies installed
-- ✓ All modules importable
-- ✓ Example files present
-- ✓ Configuration valid
-- ✓ Playwright browsers installed
+This checks:
+- All dependencies installed (did you run pip install?)
+- All modules importable (no broken imports)
+- Example files present (we included examples, don't delete them)
+- Configuration valid (your YAML isn't garbage)
+- Playwright browsers installed (did you run playwright install?)
 
-## Examples
+## Examples (Sample Data Included)
 
-The `examples/` directory contains sample input files:
+The `examples/` directory has everything you need to test:
 - `urls.txt` - Sample URL list
 - `subdomains.txt` - Sample subdomain list
 - `burp_sitemap_example.xml` - Sample Burp Suite export
 - `nmap_example.xml` - Sample Nmap scan
 
-## Future Enhancements
+Use these to make sure everything works before pointing it at real targets.
 
-### Planned Features
-- Authentication support (credentials, cookies, API tokens)
-- JavaScript interaction (click buttons, fill forms)
-- Comparison mode (diff screenshots over time)
-- Advanced analysis (response body inspection, vulnerability patterns)
-- Additional outputs (PDF reports, CSV exports)
-- Masscan support
+## Future Enhancements (Maybe Someday)
 
-### Current Limitations
-- No authentication support (yet)
-- No JavaScript interaction beyond page load
-- No custom cookies/sessions
-- Single viewport per run (but configurable)
+### Things We Might Add
+- Authentication support (username/password, cookies, tokens)
+- JavaScript interaction (click buttons, fill forms, be a real browser)
+- Comparison mode (diff screenshots over time, spot changes)
+- Advanced analysis (scan response bodies for fun stuff)
+- PDF reports (because some people hate HTML)
+- Masscan support (for when Nmap is too slow)
 
-## Security Considerations
+### Current Limitations (Things We Haven't Done Yet)
+- No authentication support (can't log in automatically)
+- No JavaScript interaction beyond page load (it's a screenshot tool, not a web driver)
+- No custom cookies/sessions (yet)
+- Can't screenshot multiple viewports in one run (run it multiple times, it's fast)
 
-- ✅ No credential storage
-- ✅ Local execution only
-- ✅ Sanitized file paths (no traversal)
-- ✅ SSL verification configurable
-- ✅ No remote code execution
-- ✅ Safe for production use in pen testing context
+## Security Considerations (CYA Section)
 
-## Requirements
+- No credential storage (we don't want that liability)
+- Local execution only (nothing phones home)
+- Sanitized file paths (no directory traversal shenanigans)
+- SSL verification configurable (disabled by default for pen testing)
+- No remote code execution (it's screenshots, not shells)
+- Safe for production use in pen testing context (but maybe not on prod)
 
-- Python 3.10 or higher
-- Playwright (Chromium browser)
-- 2GB RAM minimum (more for concurrent workers)
-- Network access to targets
+## Requirements (What You Need)
 
-## License
+- Python 3.10 or higher (if you're still on 2.7, we can't help you)
+- Playwright with Chromium (downloads ~200MB, deal with it)
+- 2GB RAM minimum (more if you increase concurrent workers)
+- Network access to targets (duh)
+- Common sense (optional but recommended)
 
-Internal tool for penetration testing use.
+## Contributing (Yes, Please)
 
-## Contributing
-
-Feedback and contributions welcome! Feel free to:
-- Report issues
-- Suggest features
-- Submit pull requests
-- Share integration examples
+Found a bug? Want a feature? Have a better ASCII art header?
+- Report issues (tell us what broke)
+- Suggest features (tell us what you want)
+- Submit pull requests (tell us you fixed it yourself)
+- Share integration examples (help others)
 
 ## Credits
 
-Built with focus on:
-- **Modularity**: Easy to extend with new input parsers
-- **Performance**: Concurrent processing for speed
-- **Usability**: Clear output and good UX
-- **Integration**: Works seamlessly with existing tools
+Built with:
+- **Modularity**: Easy to extend (add more parsers, we dare you)
+- **Performance**: Concurrent processing (because time is money)
+- **Usability**: Clear output (no PhD required)
+- **Integration**: Works with existing tools (plays well with others)
+- **Snark**: Excessive amounts (you're welcome)
 
-## Quick Reference
+## Quick Reference (Cheat Sheet)
 
 ```bash
-# Installation
+# Installation (do this first)
 pip install -r requirements.txt && playwright install chromium
 
-# Basic usage
+# Basic usage (the simple version)
 python pendoc.py --urls urls.txt -o output/
 
-# Multiple sources
+# Multiple sources (showing off)
 python pendoc.py --urls u.txt --burp b.xml --subdomains s.txt --nmap n.xml -o out/
 
-# Custom config
+# Custom config (for control freaks)
 python pendoc.py --urls urls.txt -c custom.yaml -o output/
 
-# Test installation
+# Test installation (make sure it works)
 python test_pendoc.py
 
-# Quick demo (Windows)
+# Quick demo for Windows users
 quicktest.bat
 ```
 
 ---
 
-**Status**: ✅ Production-ready
+**Status**: Production-ready and battle-tested
 
-For detailed feature documentation and advanced usage, see the inline comments in `config/pendoc.yaml` and the example files in `examples/`.
+**License**: Internal use only (don't redistribute, don't blame us if something breaks)
+
+**Support**: Read the code, it's not that complicated
+
+Now go forth and document your pen tests like a boss. Your future self (writing the report at 2 AM before the deadline) will thank you.
