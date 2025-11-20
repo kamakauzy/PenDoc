@@ -59,6 +59,9 @@ input:
   # Auto-detect protocol if not specified
   default_protocol: "https"
   
+  # Auto-discover web ports on bare IPs/hostnames
+  auto_discover_ports: true
+  
   # Ports to consider for HTTP services (from port scans)
   http_ports: [80, 8000, 8080, 8888, 3000, 5000]
   https_ports: [443, 8443, 9443]

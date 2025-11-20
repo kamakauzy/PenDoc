@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 from urllib.parse import urlparse
+from lib.port_checker import QuickPortChecker
 
 
 class URLParser:
@@ -11,6 +12,8 @@ class URLParser:
     def __init__(self, config: dict):
         self.config = config
         self.logger = logging.getLogger(__name__)
+        self.port_checker = QuickPortChecker(timeout=2.0, max_workers=10)
+        self.auto_discover_ports = config.get('input', {}).get('auto_discover_ports', True)
     
     def parse(self, file_path: str) -> list:
         """
@@ -49,7 +52,29 @@ class URLParser:
                 if not line or line.startswith('#'):
                     continue
                 
-                # Smart protocol handling
+                # Check if this is a bare IP/hostname that needs port discovery
+                if self.auto_discover_ports and self.port_checker.is_bare_ip_or_host(line):
+                    self.logger.info(f"Bare IP/hostname detected: {line}, checking common web ports...")
+                    discovered_services = self.port_checker.find_web_services(line)
+                    
+                    if discovered_services:
+                        for service in discovered_services:
+                            targets.append({
+                                'url': service['url'],
+                                'source': 'url_list_discovered',
+                                'source_file': file_path,
+                                'line_number': line_num,
+                                'domain': service['host'],
+                                'scheme': service['protocol'],
+                                'port': service['port'],
+                                'discovered_port': True
+                            })
+                        self.logger.info(f"Discovered {len(discovered_services)} web services on {line}")
+                    else:
+                        self.logger.warning(f"No web services found on {line}")
+                    continue
+                
+                # Smart protocol handling for entries with ports
                 if not line.startswith(('http://', 'https://')):
                     # Check if it has a port that suggests http vs https
                     if ':80' in line or ':8080' in line or ':8000' in line or ':3000' in line or ':5000' in line:
