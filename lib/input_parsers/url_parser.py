@@ -49,9 +49,16 @@ class URLParser:
                 if not line or line.startswith('#'):
                     continue
                 
-                # Add protocol if missing
+                # Smart protocol handling
                 if not line.startswith(('http://', 'https://')):
-                    protocol = self.config['input']['default_protocol']
+                    # Check if it has a port that suggests http vs https
+                    if ':80' in line or ':8080' in line or ':8000' in line or ':3000' in line or ':5000' in line:
+                        protocol = 'http'
+                    elif ':443' in line or ':8443' in line:
+                        protocol = 'https'
+                    else:
+                        protocol = self.config['input']['default_protocol']
+                    
                     url = f"{protocol}://{line}"
                 else:
                     url = line
@@ -59,20 +66,58 @@ class URLParser:
                 # Validate URL
                 try:
                     parsed = urlparse(url)
-                    if not parsed.netloc:
-                        self.logger.warning(f"Invalid URL at line {line_num}: {line}")
-                        continue
                     
-                    targets.append({
-                        'url': url,
-                        'source': 'url_list',
-                        'source_file': file_path,
-                        'line_number': line_num,
-                        'domain': parsed.netloc,
-                        'scheme': parsed.scheme
-                    })
+                    # Check if we have a netloc (domain/IP)
+                    # urlparse can be weird with IPs, so let's be more lenient
+                    if not parsed.netloc:
+                        # Maybe urlparse failed, try a simpler check
+                        # If we can split on :// and there's something after, it's probably valid
+                        if '://' in url and len(url.split('://')[1]) > 0:
+                            self.logger.debug(f"URL might be valid despite urlparse issues: {url}")
+                            # Manual parsing
+                            parts = url.split('://')
+                            scheme = parts[0]
+                            rest = parts[1]
+                            netloc = rest.split('/')[0] if '/' in rest else rest
+                            
+                            targets.append({
+                                'url': url,
+                                'source': 'url_list',
+                                'source_file': file_path,
+                                'line_number': line_num,
+                                'domain': netloc,
+                                'scheme': scheme
+                            })
+                        else:
+                            self.logger.warning(f"Invalid URL at line {line_num}: {line} -> {url}")
+                            continue
+                    else:
+                        targets.append({
+                            'url': url,
+                            'source': 'url_list',
+                            'source_file': file_path,
+                            'line_number': line_num,
+                            'domain': parsed.netloc,
+                            'scheme': parsed.scheme
+                        })
                 except Exception as e:
-                    self.logger.warning(f"Error parsing URL at line {line_num}: {e}")
+                    self.logger.warning(f"Error parsing URL at line {line_num} ({line}): {e}")
+                    # Try to add it anyway if it looks URL-like
+                    if '://' in url:
+                        parts = url.split('://')
+                        if len(parts) == 2 and parts[1]:
+                            scheme = parts[0]
+                            rest = parts[1]
+                            netloc = rest.split('/')[0] if '/' in rest else rest
+                            
+                            targets.append({
+                                'url': url,
+                                'source': 'url_list',
+                                'source_file': file_path,
+                                'line_number': line_num,
+                                'domain': netloc,
+                                'scheme': scheme
+                            })
                     continue
             
             self.logger.info(f"Parsed {len(targets)} URLs from {file_path}")
