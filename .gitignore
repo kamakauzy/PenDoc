@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Playwright
+.pytest_cache/
+playwright/.browsers/
+
+# Output directories
+output/
+test_output/
+results/
+screenshots/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Configuration (keep examples)
+config/*.yaml
+!config/pendoc.yaml
+config/*.json
+!config/*.example
+
+# Temporary files
+*.tmp
+temp/
+tmp/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Data files (actual scans)
+*.xml
+!examples/*.xml
+*.json
+!examples/*.json
+!package.json
+
+# Sensitive data
+*password*
+*secret*
+*credential*
+*.key
+*.pem
+*.crt
+

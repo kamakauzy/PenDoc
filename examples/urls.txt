@@ -1,0 +1,12 @@
+# Example URLs
+https://example.com
+https://www.google.com
+https://github.com
+
+# You can also add URLs without protocol (will use default from config)
+# example.org
+# test.com
+
+# Comments are ignored
+# https://commented.com
+

@@ -1,0 +1,220 @@
+"""Screenshot capture engine using Playwright"""
+
+import logging
+from pathlib import Path
+from datetime import datetime
+import asyncio
+from typing import List, Dict
+from urllib.parse import urlparse
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
+from tqdm import tqdm
+
+
+class ScreenshotEngine:
+    """Handles screenshot capture using Playwright"""
+    
+    def __init__(self, config: dict, output_dir: Path):
+        self.config = config
+        self.output_dir = output_dir
+        self.screenshot_dir = output_dir / 'screenshots'
+        self.screenshot_dir.mkdir(parents=True, exist_ok=True)
+        self.logger = logging.getLogger(__name__)
+        
+    def capture_all(self, targets: List[Dict]) -> List[Dict]:
+        """
+        Capture screenshots for all targets
+        
+        Args:
+            targets: List of target dictionaries
+            
+        Returns:
+            List of results with screenshot paths and metadata
+        """
+        # Run async capture
+        results = asyncio.run(self._capture_all_async(targets))
+        return results
+    
+    async def _capture_all_async(self, targets: List[Dict]) -> List[Dict]:
+        """Async screenshot capture with concurrency"""
+        async with async_playwright() as p:
+            # Launch browser
+            browser = await p.chromium.launch(
+                headless=True,
+                args=['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
+            )
+            
+            # Create browser context with settings
+            context = await browser.new_context(
+                user_agent=self.config['http']['user_agent'],
+                ignore_https_errors=not self.config['http']['verify_ssl'],
+                viewport={
+                    'width': self.config['screenshots']['viewports']['desktop']['width'],
+                    'height': self.config['screenshots']['viewports']['desktop']['height']
+                }
+            )
+            
+            # Process targets with concurrency limit
+            max_workers = self.config['performance']['concurrent_workers']
+            results = []
+            
+            # Use tqdm for progress bar
+            if self.config['logging']['show_progress']:
+                pbar = tqdm(total=len(targets), desc="Capturing screenshots", unit="target")
+            
+            # Process in batches
+            for i in range(0, len(targets), max_workers):
+                batch = targets[i:i + max_workers]
+                batch_results = await asyncio.gather(
+                    *[self._capture_target(context, target) for target in batch],
+                    return_exceptions=True
+                )
+                
+                # Handle results
+                for result in batch_results:
+                    if isinstance(result, Exception):
+                        self.logger.error(f"Batch error: {result}")
+                        results.append({
+                            'status': 'failed',
+                            'error': str(result)
+                        })
+                    else:
+                        results.append(result)
+                
+                if self.config['logging']['show_progress']:
+                    pbar.update(len(batch))
+            
+            if self.config['logging']['show_progress']:
+                pbar.close()
+            
+            await context.close()
+            await browser.close()
+            
+            return results
+    
+    async def _capture_target(self, context, target: Dict) -> Dict:
+        """
+        Capture screenshot for a single target
+        
+        Args:
+            context: Playwright browser context
+            target: Target dictionary
+            
+        Returns:
+            Result dictionary with screenshot info
+        """
+        url = target['url']
+        result = {
+            **target,
+            'status': 'pending',
+            'screenshots': {},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        retries = 0
+        max_retries = self.config['performance']['max_retries']
+        
+        while retries <= max_retries:
+            try:
+                # Create new page
+                page = await context.new_page()
+                
+                # Navigate to URL
+                timeout = self.config['screenshots']['timeout'] * 1000
+                response = await page.goto(
+                    url,
+                    wait_until='networkidle',
+                    timeout=timeout
+                )
+                
+                # Wait additional time for JS rendering
+                await asyncio.sleep(self.config['screenshots']['wait_after_load'] / 1000)
+                
+                # Get response metadata
+                if response:
+                    result['http_status'] = response.status
+                    result['http_headers'] = await response.all_headers()
+                
+                # Get page title
+                result['page_title'] = await page.title()
+                
+                # Capture screenshots for enabled viewports
+                viewports = self.config['screenshots']['viewports']
+                
+                if self.config['screenshots']['capture_desktop']:
+                    await self._capture_viewport(
+                        page, result, 'desktop',
+                        viewports['desktop']
+                    )
+                
+                if self.config['screenshots'].get('capture_tablet'):
+                    await page.set_viewport_size(viewports['tablet'])
+                    await self._capture_viewport(
+                        page, result, 'tablet',
+                        viewports['tablet']
+                    )
+                
+                if self.config['screenshots'].get('capture_mobile'):
+                    await page.set_viewport_size(viewports['mobile'])
+                    await self._capture_viewport(
+                        page, result, 'mobile',
+                        viewports['mobile']
+                    )
+                
+                result['status'] = 'success'
+                await page.close()
+                break
+                
+            except PlaywrightTimeout:
+                retries += 1
+                if retries > max_retries:
+                    result['status'] = 'failed'
+                    result['error'] = 'Timeout'
+                    self.logger.warning(f"Timeout capturing {url}")
+                else:
+                    await asyncio.sleep(self.config['performance']['retry_delay'])
+                    
+            except Exception as e:
+                retries += 1
+                if retries > max_retries:
+                    result['status'] = 'failed'
+                    result['error'] = str(e)
+                    self.logger.warning(f"Error capturing {url}: {e}")
+                else:
+                    await asyncio.sleep(self.config['performance']['retry_delay'])
+            
+            finally:
+                try:
+                    if 'page' in locals():
+                        await page.close()
+                except:
+                    pass
+        
+        return result
+    
+    async def _capture_viewport(self, page, result: Dict, viewport_name: str, viewport_size: Dict):
+        """Capture screenshot for specific viewport"""
+        url = result['url']
+        parsed = urlparse(url)
+        
+        # Create organized directory structure
+        domain = parsed.netloc.replace(':', '_')
+        screenshot_subdir = self.screenshot_dir / domain / viewport_name
+        screenshot_subdir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate filename
+        path = parsed.path.strip('/').replace('/', '_') or 'index'
+        if len(path) > 100:
+            path = path[:100]
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{path}_{timestamp}.png"
+        screenshot_path = screenshot_subdir / filename
+        
+        # Capture screenshot
+        await page.screenshot(
+            path=str(screenshot_path),
+            full_page=self.config['screenshots']['full_page']
+        )
+        
+        result['screenshots'][viewport_name] = str(screenshot_path)
+

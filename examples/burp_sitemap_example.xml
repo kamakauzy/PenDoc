@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<items burpVersion="2023.10.3.7">
+  <item>
+    <time>Thu Nov 20 15:30:00 UTC 2025</time>
+    <url><![CDATA[https://example.com/]]></url>
+    <host ip="93.184.216.34">example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method><![CDATA[GET]]></method>
+    <path><![CDATA[/]]></path>
+    <extension>null</extension>
+    <request base64="true"><![CDATA[R0VUIC8gSFRUUC8xLjENCkhvc3Q6IGV4YW1wbGUuY29tDQoNCg==]]></request>
+    <status>200</status>
+    <responselength>1256</responselength>
+    <mimetype>HTML</mimetype>
+    <response base64="true"><![CDATA[SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LVR5cGU6IHRleHQvaHRtbA0KDQo8aHRtbD48Ym9keT5FeGFtcGxlPC9ib2R5PjwvaHRtbD4=]]></response>
+    <comment></comment>
+  </item>
+  <item>
+    <time>Thu Nov 20 15:30:05 UTC 2025</time>
+    <url><![CDATA[https://example.com/admin]]></url>
+    <host ip="93.184.216.34">example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method><![CDATA[GET]]></method>
+    <path><![CDATA[/admin]]></path>
+    <extension>null</extension>
+    <request base64="true"><![CDATA[R0VUIC9hZG1pbiBIVFRQLzEuMQ0KSG9zdDogZXhhbXBsZS5jb20NCg0K]]></request>
+    <status>403</status>
+    <responselength>156</responselength>
+    <mimetype>HTML</mimetype>
+    <response base64="true"><![CDATA[SFRUUC8xLjEgNDAzIEZvcmJpZGRlbg0KQ29udGVudC1UeXBlOiB0ZXh0L2h0bWwNCg0KPGH0bWw+PGJvZHk+Rm9yYmlkZGVuPC9ib2R5PjwvaHRtbD4=]]></response>
+    <comment></comment>
+  </item>
+  <item>
+    <time>Thu Nov 20 15:30:10 UTC 2025</time>
+    <url><![CDATA[https://example.com/api/v1/users]]></url>
+    <host ip="93.184.216.34">example.com</host>
+    <port>443</port>
+    <protocol>https</protocol>
+    <method><![CDATA[GET]]></method>
+    <path><![CDATA[/api/v1/users]]></path>
+    <extension>null</extension>
+    <request base64="true"><![CDATA[R0VUIC9hcGkvdjEvdXNlcnMgSFRUUC8xLjENCkhvc3Q6IGV4YW1wbGUuY29tDQoNCg==]]></request>
+    <status>200</status>
+    <responselength>458</responselength>
+    <mimetype>JSON</mimetype>
+    <response base64="true"><![CDATA[SFRUUC8xLjEgMjAwIE9LDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2pzb24NCg0KeyJ1c2VycyI6W119]]></response>
+    <comment></comment>
+  </item>
+</items>
+

@@ -1,0 +1,125 @@
+# PenDoc Configuration File
+
+# Screenshot settings
+screenshots:
+  # Viewport sizes to capture
+  viewports:
+    desktop:
+      width: 1920
+      height: 1080
+    tablet:
+      width: 768
+      height: 1024
+    mobile:
+      width: 375
+      height: 667
+  
+  # Enable/disable viewport types
+  capture_desktop: true
+  capture_tablet: false
+  capture_mobile: false
+  
+  # Full page screenshot (scrolls and captures entire page)
+  full_page: true
+  
+  # Timeout in seconds for page load
+  timeout: 30
+  
+  # Wait for additional time after load (in ms) for JS to render
+  wait_after_load: 2000
+
+# Performance settings
+performance:
+  # Number of concurrent browser contexts
+  concurrent_workers: 5
+  
+  # Maximum retries for failed screenshots
+  max_retries: 2
+  
+  # Delay between retries (seconds)
+  retry_delay: 5
+
+# HTTP settings
+http:
+  # Follow redirects
+  follow_redirects: true
+  
+  # User agent string
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 PenDoc/1.0"
+  
+  # Verify SSL certificates
+  verify_ssl: false
+  
+  # Additional HTTP headers
+  headers: {}
+    # X-Custom-Header: "value"
+
+# Input parsing
+input:
+  # Auto-detect protocol if not specified
+  default_protocol: "https"
+  
+  # Ports to consider for HTTP services (from port scans)
+  http_ports: [80, 8000, 8080, 8888, 3000, 5000]
+  https_ports: [443, 8443, 9443]
+  
+  # Skip these URLs/patterns
+  exclude_patterns:
+    - ".*\\.js$"
+    - ".*\\.css$"
+    - ".*\\.jpg$"
+    - ".*\\.png$"
+    - ".*\\.gif$"
+    - ".*\\.svg$"
+    - ".*\\.woff$"
+    - ".*\\.ttf$"
+
+# Enrichment settings
+enrichment:
+  # Collect HTTP headers
+  collect_headers: true
+  
+  # Detect technologies (basic detection)
+  detect_technologies: true
+  
+  # Collect SSL certificate info
+  collect_ssl_info: true
+  
+  # Extract interesting headers
+  interesting_headers:
+    - "Server"
+    - "X-Powered-By"
+    - "X-AspNet-Version"
+    - "X-Framework"
+    - "Content-Security-Policy"
+    - "X-Frame-Options"
+    - "Strict-Transport-Security"
+
+# Report settings
+report:
+  # Report title
+  title: "PenDoc - Penetration Testing Documentation"
+  
+  # Group by domain or keep flat
+  group_by_domain: true
+  
+  # Show metadata in report
+  show_metadata: true
+  
+  # Include timestamp
+  include_timestamp: true
+  
+  # Theme (light/dark)
+  theme: "dark"
+
+# Logging
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: "INFO"
+  
+  # Log file location (empty for stdout only)
+  file: ""
+  
+  # Show progress bar
+  show_progress: true
+
