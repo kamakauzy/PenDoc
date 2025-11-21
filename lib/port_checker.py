@@ -96,19 +96,19 @@ class QuickPortChecker:
         
         return open_services
     
-    def is_bare_ip_or_host(self, target: str) -> bool:
+    def is_bare_ip_or_host(self, target: str) -> tuple:
         """
-        Check if target is a bare IP or hostname (no port, no protocol)
+        Check if target is a bare IP or hostname and determine if it should be port scanned
         
         Args:
             target: Target string
             
         Returns:
-            True if it's a bare IP/hostname, False if it has port or protocol
+            (should_scan, is_ip) - True/False for scanning, True/False for if it's an IP
         """
         # Has protocol
         if target.startswith(('http://', 'https://')):
-            return False
+            return (False, False)
         
         # Has port
         if ':' in target:
@@ -117,9 +117,14 @@ class QuickPortChecker:
             if len(parts) == 2:
                 try:
                     int(parts[1])  # If this works, it's a port
-                    return False
+                    return (False, False)
                 except ValueError:
                     pass
         
-        return True
+        # Check if it's an IP address
+        parts = target.replace('.', '').replace(':', '')
+        is_ip = parts.isdigit() or all(c in '0123456789abcdefABCDEF:' for c in target)
+        
+        # Only scan IPs, not hostnames (hostnames often have firewalls/WAF that block port scans)
+        return (is_ip, is_ip)
 
