@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from datetime import datetime
 import asyncio
+import json
 from typing import List, Dict
 from urllib.parse import urlparse
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
@@ -18,24 +19,67 @@ class ScreenshotEngine:
         self.output_dir = output_dir
         self.screenshot_dir = output_dir / 'screenshots'
         self.screenshot_dir.mkdir(parents=True, exist_ok=True)
+        self.progress_file = output_dir / '.pendoc_progress.json'
         self.logger = logging.getLogger(__name__)
+    
+    def save_progress(self, results: List[Dict]):
+        """Save current progress to file"""
+        try:
+            with open(self.progress_file, 'w') as f:
+                json.dump(results, f, indent=2, default=str)
+            self.logger.debug(f"Saved progress: {len(results)} results")
+        except Exception as e:
+            self.logger.warning(f"Could not save progress: {e}")
+    
+    def load_progress(self) -> List[Dict]:
+        """Load existing progress from file"""
+        if self.progress_file.exists():
+            try:
+                with open(self.progress_file, 'r') as f:
+                    results = json.load(f)
+                self.logger.info(f"Loaded {len(results)} existing results from previous run")
+                return results
+            except Exception as e:
+                self.logger.warning(f"Could not load progress file: {e}")
+        return []
         
-    def capture_all(self, targets: List[Dict]) -> List[Dict]:
+    def capture_all(self, targets: List[Dict], resume: bool = False) -> List[Dict]:
         """
         Capture screenshots for all targets
         
         Args:
             targets: List of target dictionaries
+            resume: If True, load and continue from previous progress
             
         Returns:
             List of results with screenshot paths and metadata
         """
+        # Load existing progress if resuming
+        existing_results = []
+        if resume:
+            existing_results = self.load_progress()
+            if existing_results:
+                # Get URLs that are already done
+                completed_urls = {r['url'] for r in existing_results}
+                # Filter out completed targets
+                remaining_targets = [t for t in targets if t['url'] not in completed_urls]
+                
+                if not remaining_targets:
+                    self.logger.info("All targets already processed!")
+                    return existing_results
+                
+                self.logger.info(f"Resuming: {len(existing_results)} already done, {len(remaining_targets)} remaining")
+                targets = remaining_targets
+        
         # Run async capture
-        results = asyncio.run(self._capture_all_async(targets))
+        results = asyncio.run(self._capture_all_async(targets, existing_results))
         return results
     
-    async def _capture_all_async(self, targets: List[Dict]) -> List[Dict]:
+    async def _capture_all_async(self, targets: List[Dict], existing_results: List[Dict] = None) -> List[Dict]:
         """Async screenshot capture with concurrency"""
+        if existing_results is None:
+            existing_results = []
+        
         async with async_playwright() as p:
             # Launch browser with stealth options
             browser = await p.chromium.launch(
@@ -107,7 +151,7 @@ class ScreenshotEngine:
             
             # Process targets with concurrency limit
             max_workers = self.config['performance']['concurrent_workers']
-            results = []
+            results = list(existing_results)  # Start with existing results
             
             # Use tqdm for progress bar
             if self.config['logging']['show_progress']:
@@ -131,6 +175,9 @@ class ScreenshotEngine:
                         })
                     else:
                         results.append(result)
+                
+                # Save progress after each batch
+                self.save_progress(results)
                 
                 if self.config['logging']['show_progress']:
                     pbar.update(len(batch))

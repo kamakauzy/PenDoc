@@ -143,15 +143,6 @@ class PenDoc:
         print(f"  PenDoc - Penetration Testing Documentation Tool")
         print(f"{'='*60}{Style.RESET_ALL}\n")
         
-        # Parse inputs
-        targets = self.parse_inputs(args)
-        
-        if not targets:
-            print(f"{Fore.RED}Error: No targets found from input sources{Style.RESET_ALL}")
-            sys.exit(1)
-        
-        print(f"{Fore.GREEN}✓ Loaded {len(targets)} targets{Style.RESET_ALL}\n")
-        
         # Create output directory
         output_dir = Path(args.output)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -160,9 +151,28 @@ class PenDoc:
         screenshot_engine = ScreenshotEngine(self.config, output_dir)
         enrichment_engine = EnrichmentEngine(self.config)
         
-        # Process targets
-        print(f"{Fore.CYAN}Starting screenshot capture...{Style.RESET_ALL}\n")
-        results = screenshot_engine.capture_all(targets)
+        # Handle resume mode
+        if args.resume:
+            print(f"{Fore.YELLOW}Resuming from previous run...{Style.RESET_ALL}\n")
+            results = screenshot_engine.load_progress()
+            if not results:
+                print(f"{Fore.RED}Error: No progress file found. Cannot resume.{Style.RESET_ALL}")
+                print(f"Looking for: {screenshot_engine.progress_file}")
+                sys.exit(1)
+            print(f"{Fore.GREEN}✓ Loaded {len(results)} existing results{Style.RESET_ALL}\n")
+        else:
+            # Parse inputs
+            targets = self.parse_inputs(args)
+            
+            if not targets:
+                print(f"{Fore.RED}Error: No targets found from input sources{Style.RESET_ALL}")
+                sys.exit(1)
+            
+            print(f"{Fore.GREEN}✓ Loaded {len(targets)} targets{Style.RESET_ALL}\n")
+            
+            # Process targets
+            print(f"{Fore.CYAN}Starting screenshot capture...{Style.RESET_ALL}\n")
+            results = screenshot_engine.capture_all(targets, resume=False)
         
         # Enrich with metadata
         if self.config['enrichment']['collect_headers']:
@@ -246,15 +256,19 @@ Examples:
     parser.add_argument('--output', '-o', default='output',
                        help='Output directory (default: output)')
     
+    # Resume
+    parser.add_argument('--resume', '-r', action='store_true',
+                       help='Resume from previous interrupted run')
+    
     # Configuration
     parser.add_argument('--config', '-c', default='config/pendoc.yaml',
                        help='Configuration file (default: config/pendoc.yaml)')
     
     args = parser.parse_args()
     
-    # Validate at least one input source
-    if not any([args.urls, args.burp, args.subdomains, args.nmap]):
-        parser.error("At least one input source is required (--urls, --burp, --subdomains, or --nmap)")
+    # Validate at least one input source (or --resume)
+    if not args.resume and not any([args.urls, args.burp, args.subdomains, args.nmap]):
+        parser.error("At least one input source is required (--urls, --burp, --subdomains, or --nmap), or use --resume")
     
     # Run PenDoc
     try:
