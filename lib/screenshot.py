@@ -37,21 +37,73 @@ class ScreenshotEngine:
     async def _capture_all_async(self, targets: List[Dict]) -> List[Dict]:
         """Async screenshot capture with concurrency"""
         async with async_playwright() as p:
-            # Launch browser
+            # Launch browser with stealth options
             browser = await p.chromium.launch(
                 headless=True,
-                args=['--disable-web-security', '--disable-features=IsolateOrigins,site-per-process']
+                args=[
+                    '--disable-web-security',
+                    '--disable-features=IsolateOrigins,site-per-process',
+                    '--disable-blink-features=AutomationControlled',  # Hide automation
+                    '--disable-dev-shm-usage',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox'
+                ]
             )
             
-            # Create browser context with settings
+            # Realistic user agent (latest Chrome on Windows)
+            user_agent = (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) '
+                'Chrome/120.0.0.0 Safari/537.36'
+            )
+            
+            # Create browser context with WAF bypass settings
             context = await browser.new_context(
-                user_agent=self.config['http']['user_agent'],
+                user_agent=user_agent,
                 ignore_https_errors=not self.config['http']['verify_ssl'],
                 viewport={
                     'width': self.config['screenshots']['viewports']['desktop']['width'],
                     'height': self.config['screenshots']['viewports']['desktop']['height']
+                },
+                # Additional headers to look like real browser
+                extra_http_headers={
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.9',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    'DNT': '1',
+                    'Connection': 'keep-alive',
+                    'Upgrade-Insecure-Requests': '1',
+                    'Sec-Fetch-Dest': 'document',
+                    'Sec-Fetch-Mode': 'navigate',
+                    'Sec-Fetch-Site': 'none',
+                    'Sec-Fetch-User': '?1',
+                    'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                    'Sec-Ch-Ua-Mobile': '?0',
+                    'Sec-Ch-Ua-Platform': '"Windows"'
                 }
             )
+            
+            # Remove webdriver flag (common WAF detection)
+            await context.add_init_script("""
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined
+                });
+                
+                // Add realistic plugins
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5]
+                });
+                
+                // Add realistic languages
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['en-US', 'en']
+                });
+                
+                // Chrome runtime
+                window.chrome = {
+                    runtime: {}
+                };
+            """)
             
             # Process targets with concurrency limit
             max_workers = self.config['performance']['concurrent_workers']
