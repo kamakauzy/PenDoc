@@ -49,9 +49,9 @@ def scan_existing_screenshots(output_dir: Path) -> list:
         result = {
             'url': f"https://{domain}",
             'status': 'success',
-            'screenshot': str(screenshot_file.relative_to(screenshots_dir)),
+            'screenshot': f"screenshots/{screenshot_file.relative_to(screenshots_dir)}",
             'screenshots': {
-                viewport_dir: str(screenshot_file.relative_to(screenshots_dir))
+                viewport_dir: f"screenshots/{screenshot_file.relative_to(screenshots_dir)}"
             },
             'timestamp': datetime.fromtimestamp(screenshot_file.stat().st_mtime).isoformat(),
             'domain': domain,
