@@ -33,18 +33,18 @@ def scan_existing_screenshots(output_dir: Path) -> list:
     
     print(f"📁 Scanning: {screenshots_dir}")
     
-    # Look for all screenshot files
-    for screenshot_file in sorted(screenshots_dir.glob('*.png')):
-        filename = screenshot_file.stem
+    # Look for all screenshot files recursively (they're in subdirectories by domain)
+    for screenshot_file in sorted(screenshots_dir.rglob('*.png')):
+        # Extract domain from parent directory name
+        domain = screenshot_file.parent.name
         
-        # Try to parse the filename to extract URL info
-        # Format is usually: domain_timestamp.png or domain_port_timestamp.png
+        # Create result entry
         result = {
-            'url': f"https://{filename.split('_')[0]}",  # Rough guess
+            'url': f"https://{domain}",
             'status': 'success',
-            'screenshot': str(screenshot_file.name),
+            'screenshot': str(screenshot_file.relative_to(screenshots_dir)),
             'timestamp': datetime.fromtimestamp(screenshot_file.stat().st_mtime).isoformat(),
-            'domain': filename.split('_')[0],
+            'domain': domain,
             'source': 'recovered_screenshot',
             'http_headers': {},
             'technologies': []
