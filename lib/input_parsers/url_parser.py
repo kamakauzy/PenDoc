@@ -45,12 +45,22 @@ class URLParser:
             self.logger.error(f"Could not decode file {file_path} with any supported encoding")
             return []
         
+        # Strip BOM if present
+        content = content.lstrip('\ufeff\ufffe')  # Remove UTF-8/UTF-16 BOM
+        
         try:
             for line_num, line in enumerate(content.splitlines(), 1):
                 line = line.strip()
                 
-                # Skip empty lines and comments
-                if not line or line.startswith('#'):
+                # Strip any remaining BOM or special characters from individual lines
+                line = line.lstrip('\ufeff\ufffe')
+                
+                # Skip empty lines, comments, or lines with only whitespace
+                if not line or line.startswith('#') or len(line) < 4:
+                    continue
+                
+                # Skip URLs that are just the protocol
+                if line in ['http://', 'https://']:
                     continue
                 
                 # Check if this needs port discovery (IPs only, not hostnames)
