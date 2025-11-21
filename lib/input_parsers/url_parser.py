@@ -53,9 +53,13 @@ class URLParser:
                 if not line or line.startswith('#'):
                     continue
                 
+                # Debug: show what we're processing
+                if line_num <= 5:  # Show first 5 for debugging
+                    self.logger.info(f"Processing line {line_num}: '{line}'")
+                
                 # Check if this is a bare IP/hostname that needs port discovery
                 if self.auto_discover_ports and self.port_checker.is_bare_ip_or_host(line):
-                    self.logger.info(f"Bare IP/hostname detected: {line}, checking common web ports...")
+                    self.logger.info(f"Line {line_num}: Detected bare IP/hostname: {line}, checking ports...")
                     discovered_services = self.port_checker.find_web_services(line)
                     
                     if discovered_services:
@@ -74,6 +78,9 @@ class URLParser:
                     else:
                         self.logger.warning(f"No web services found on {line}")
                     continue
+                else:
+                    if line_num <= 5:
+                        self.logger.info(f"Line {line_num}: Not a bare IP/hostname, processing as URL")
                 
                 # Smart protocol handling for entries with ports
                 if not line.startswith(('http://', 'https://')):
