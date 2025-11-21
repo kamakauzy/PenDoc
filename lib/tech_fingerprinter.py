@@ -13,49 +13,205 @@ class TechnologyFingerprinter:
         
         # CMS/Platform signatures
         self.signatures = {
+            # WordPress Ecosystem
             'wordpress': {
                 'paths': ['/wp-content/', '/wp-includes/', '/wp-admin/', '/wp-login.php'],
                 'headers': {'X-Powered-By': 'WordPress'},
                 'body_patterns': ['wp-content', 'wp-includes', 'wordpress'],
-                'priority': 'high'
-            },
-            'joomla': {
-                'paths': ['/administrator/', '/components/', '/modules/', '/templates/'],
-                'headers': {'X-Content-Encoded-By': 'Joomla'},
-                'body_patterns': ['Joomla!', '/components/com_'],
-                'priority': 'high'
-            },
-            'drupal': {
-                'paths': ['/sites/default/', '/misc/drupal.js', '/core/'],
-                'headers': {'X-Generator': 'Drupal'},
-                'body_patterns': ['Drupal.settings', 'sites/default/files'],
-                'priority': 'high'
-            },
-            'sharepoint': {
-                'paths': ['/_layouts/', '/_vti_bin/', '/_api/'],
-                'headers': {'MicrosoftSharePointTeamServices': '*', 'SPRequestGuid': '*'},
-                'body_patterns': ['_spBodyOnLoadFunctionNames'],
-                'priority': 'high'
-            },
-            'magento': {
-                'paths': ['/skin/frontend/', '/js/mage/', '/media/catalog/'],
-                'body_patterns': ['Mage.Cookies', 'var BLANK_URL'],
-                'priority': 'medium'
-            },
-            'prestashop': {
-                'paths': ['/modules/', '/themes/', '/img/'],
-                'body_patterns': ['prestashop', 'PrestaShop'],
-                'priority': 'medium'
-            },
-            'shopify': {
-                'headers': {'X-ShopId': '*'},
-                'body_patterns': ['cdn.shopify.com', 'Shopify.theme'],
-                'priority': 'high'
+                'priority': 'high',
+                'category': 'cms'
             },
             'woocommerce': {
                 'paths': ['/wp-content/plugins/woocommerce/'],
                 'body_patterns': ['woocommerce', 'WooCommerce'],
-                'priority': 'high'
+                'priority': 'high',
+                'category': 'ecommerce'
+            },
+            
+            # Joomla
+            'joomla': {
+                'paths': ['/administrator/', '/components/', '/modules/', '/templates/'],
+                'headers': {'X-Content-Encoded-By': 'Joomla'},
+                'body_patterns': ['Joomla!', '/components/com_', 'joomla'],
+                'priority': 'high',
+                'category': 'cms'
+            },
+            
+            # Drupal
+            'drupal': {
+                'paths': ['/sites/default/', '/misc/drupal.js', '/core/', '/modules/'],
+                'headers': {'X-Generator': 'Drupal'},
+                'body_patterns': ['Drupal.settings', 'sites/default/files', 'drupal'],
+                'priority': 'high',
+                'category': 'cms'
+            },
+            
+            # Microsoft
+            'sharepoint': {
+                'paths': ['/_layouts/', '/_vti_bin/', '/_api/', '/_catalogs/'],
+                'headers': {'MicrosoftSharePointTeamServices': '*', 'SPRequestGuid': '*'},
+                'body_patterns': ['_spBodyOnLoadFunctionNames', 'SharePoint'],
+                'priority': 'high',
+                'category': 'cms'
+            },
+            
+            # E-commerce Platforms
+            'magento': {
+                'paths': ['/skin/frontend/', '/js/mage/', '/media/catalog/', '/magento_version'],
+                'body_patterns': ['Mage.Cookies', 'var BLANK_URL', 'Magento'],
+                'priority': 'high',
+                'category': 'ecommerce'
+            },
+            'prestashop': {
+                'paths': ['/modules/', '/themes/', '/img/'],
+                'body_patterns': ['prestashop', 'PrestaShop'],
+                'priority': 'high',
+                'category': 'ecommerce'
+            },
+            'shopify': {
+                'headers': {'X-ShopId': '*'},
+                'body_patterns': ['cdn.shopify.com', 'Shopify.theme', 'myshopify.com'],
+                'priority': 'high',
+                'category': 'ecommerce'
+            },
+            'opencart': {
+                'paths': ['/catalog/', '/image/'],
+                'body_patterns': ['catalog/view/theme/', 'OpenCart'],
+                'priority': 'medium',
+                'category': 'ecommerce'
+            },
+            'wix': {
+                'body_patterns': ['wix.com', 'wixsite.com', 'X-Wix-'],
+                'headers': {'X-Wix-Request-Id': '*', 'X-Wix-Renderer-Server': '*'},
+                'priority': 'high',
+                'category': 'website_builder'
+            },
+            'squarespace': {
+                'body_patterns': ['squarespace.com', 'squarespace-cdn'],
+                'headers': {'X-Served-By': 'squarespace'},
+                'priority': 'high',
+                'category': 'website_builder'
+            },
+            
+            # Other CMSs
+            'typo3': {
+                'paths': ['/typo3/', '/typo3conf/', '/fileadmin/'],
+                'headers': {'X-TYPO3-Parsetime': '*'},
+                'body_patterns': ['typo3', 'TYPO3'],
+                'priority': 'high',
+                'category': 'cms'
+            },
+            'concrete5': {
+                'paths': ['/concrete/', '/packages/', '/application/'],
+                'body_patterns': ['concrete5', 'Concrete CMS'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'umbraco': {
+                'paths': ['/umbraco/', '/umbraco_client/'],
+                'body_patterns': ['Umbraco', 'umbraco'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'dotnetnuke': {
+                'paths': ['/Portals/', '/DesktopModules/', '/DNN_Platform/'],
+                'headers': {'X-Powered-By': 'DNN'},
+                'body_patterns': ['DotNetNuke', 'DNN Platform'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'sitefinity': {
+                'paths': ['/Sitefinity/', '/SFRes/'],
+                'body_patterns': ['Sitefinity', 'sitefinity'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'kentico': {
+                'paths': ['/CMSPages/', '/CMSModules/'],
+                'body_patterns': ['Kentico', 'CMSPages'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'craft': {
+                'paths': ['/cpresources/', '/actions/'],
+                'headers': {'X-Powered-By': 'Craft CMS'},
+                'body_patterns': ['Craft CMS', 'craftcms'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            'ghost': {
+                'paths': ['/ghost/', '/content/'],
+                'headers': {'X-Powered-By': 'Ghost'},
+                'body_patterns': ['ghost.org', 'content/images/'],
+                'priority': 'medium',
+                'category': 'cms'
+            },
+            
+            # Forums
+            'vbulletin': {
+                'paths': ['/vbulletin/', '/clientscript/'],
+                'body_patterns': ['vBulletin', 'vbulletin'],
+                'priority': 'medium',
+                'category': 'forum'
+            },
+            'phpbb': {
+                'paths': ['/phpbb/', '/styles/'],
+                'body_patterns': ['phpBB', 'Powered by phpBB'],
+                'priority': 'medium',
+                'category': 'forum'
+            },
+            'mybb': {
+                'paths': ['/inc/', '/cache/'],
+                'body_patterns': ['MyBB', 'mybb'],
+                'priority': 'medium',
+                'category': 'forum'
+            },
+            'discourse': {
+                'headers': {'X-Discourse-Route': '*'},
+                'body_patterns': ['discourse', 'Discourse'],
+                'priority': 'medium',
+                'category': 'forum'
+            },
+            
+            # Wikis & Documentation
+            'confluence': {
+                'paths': ['/confluence/', '/wiki/'],
+                'headers': {'X-Confluence-Request-Time': '*'},
+                'body_patterns': ['Confluence', 'confluence'],
+                'priority': 'high',
+                'category': 'wiki'
+            },
+            'mediawiki': {
+                'paths': ['/mediawiki/', '/wiki/'],
+                'headers': {'X-Powered-By': 'MediaWiki'},
+                'body_patterns': ['MediaWiki', 'mw-data'],
+                'priority': 'medium',
+                'category': 'wiki'
+            },
+            
+            # Frameworks (for context)
+            'asp.net': {
+                'headers': {'X-AspNet-Version': '*', 'X-Powered-By': 'ASP.NET'},
+                'body_patterns': ['__VIEWSTATE', '__EVENTVALIDATION'],
+                'priority': 'low',
+                'category': 'framework'
+            },
+            'laravel': {
+                'headers': {'X-Powered-By': 'Laravel'},
+                'body_patterns': ['laravel', 'csrf-token'],
+                'priority': 'low',
+                'category': 'framework'
+            },
+            'django': {
+                'headers': {'X-Frame-Options': 'DENY'},
+                'body_patterns': ['csrfmiddlewaretoken', 'django'],
+                'priority': 'low',
+                'category': 'framework'
+            },
+            'express': {
+                'headers': {'X-Powered-By': 'Express'},
+                'priority': 'low',
+                'category': 'framework'
             }
         }
     

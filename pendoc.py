@@ -186,9 +186,17 @@ class PenDoc:
         successful = len([r for r in results if r['status'] == 'success'])
         failed = len([r for r in results if r['status'] == 'failed'])
         
-        # Count WordPress sites
-        wordpress_count = len([r for r in results if r.get('status') == 'success' and 
-                              any('wordpress' in str(t).lower() for t in r.get('detected_technologies', []))])
+        # Count detected CMSs
+        cms_counts = {}
+        for r in results:
+            if r.get('status') == 'success':
+                for tech in r.get('detected_technologies', []):
+                    tech_name = tech['name'] if isinstance(tech, dict) else str(tech).lower()
+                    if tech_name in ['wordpress', 'woocommerce', 'joomla', 'drupal', 'sharepoint', 
+                                    'magento', 'prestashop', 'opencart', 'typo3', 'concrete5', 
+                                    'umbraco', 'dotnetnuke', 'ghost', 'vbulletin', 'phpbb', 
+                                    'mybb', 'discourse', 'confluence', 'mediawiki']:
+                        cms_counts[tech_name] = cms_counts.get(tech_name, 0) + 1
         
         print(f"\n{Fore.CYAN}{'='*60}")
         print(f"  Summary")
@@ -196,9 +204,13 @@ class PenDoc:
         print(f"  Total targets: {len(targets)}")
         print(f"  {Fore.GREEN}Successful: {successful}{Style.RESET_ALL}")
         print(f"  {Fore.RED}Failed: {failed}{Style.RESET_ALL}")
-        if wordpress_count > 0:
-            print(f"  {Fore.YELLOW}WordPress sites: {wordpress_count}{Style.RESET_ALL}")
-        print(f"  Duration: {duration:.2f}s")
+        
+        if cms_counts:
+            print(f"\n  {Fore.YELLOW}Detected CMSs:{Style.RESET_ALL}")
+            for cms, count in sorted(cms_counts.items(), key=lambda x: x[1], reverse=True):
+                print(f"    {cms.title()}: {count}")
+        
+        print(f"\n  Duration: {duration:.2f}s")
         print(f"\n  Report: {Fore.YELLOW}{report_path}{Style.RESET_ALL}")
         
         if command_files:
