@@ -38,7 +38,7 @@ def scan_existing_screenshots(output_dir: Path) -> list:
         # Directory structure is: screenshots/domain/desktop/screenshot.png
         # So parent is "desktop", parent.parent is "domain"
         viewport_dir = screenshot_file.parent.name  # e.g., "desktop"
-        domain = screenshot_file.parent.parent.name  # e.g., "www.quikrete.com"
+        domain = screenshot_file.parent.parent.name  # e.g., "www.example.com"
         
         # Skip if we're not in the expected structure
         if domain == 'screenshots':
