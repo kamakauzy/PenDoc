@@ -28,13 +28,13 @@ class URLParser:
         """
         targets = []
         
-        # Try multiple encodings
-        encodings = ['utf-8', 'utf-8-sig', 'latin-1', 'iso-8859-1', 'windows-1252', 'cp1252']
+        # Try multiple encodings and create clean UTF-8 copy
+        encodings = ['utf-8', 'utf-8-sig', 'latin-1', 'iso-8859-1', 'windows-1252', 'cp1252', 'utf-16', 'utf-16-le', 'utf-16-be']
         content = None
         
         for encoding in encodings:
             try:
-                with open(file_path, 'r', encoding=encoding) as f:
+                with open(file_path, 'r', encoding=encoding, errors='ignore') as f:
                     content = f.read()
                 self.logger.debug(f"Successfully read file with {encoding} encoding")
                 break
@@ -45,15 +45,30 @@ class URLParser:
             self.logger.error(f"Could not decode file {file_path} with any supported encoding")
             return []
         
-        # Strip BOM if present
-        content = content.lstrip('\ufeff\ufffe')  # Remove UTF-8/UTF-16 BOM
+        # Aggressively clean the content
+        # Remove all BOM variants
+        for bom in ['\ufeff', '\ufffe', '\xef\xbb\xbf']:
+            content = content.replace(bom, '')
+        
+        # Remove any non-printable characters except newlines and spaces
+        import string
+        printable = set(string.printable)
+        content = ''.join(c for c in content if c in printable or c == '\n')
+        
+        # Save clean version for debugging if needed
+        # clean_path = file_path + '.clean'
+        # with open(clean_path, 'w', encoding='utf-8') as f:
+        #     f.write(content)
+        # self.logger.debug(f"Saved clean version to {clean_path}")
         
         try:
             for line_num, line in enumerate(content.splitlines(), 1):
+                # Aggressive cleaning of each line
                 line = line.strip()
                 
-                # Strip any remaining BOM or special characters from individual lines
-                line = line.lstrip('\ufeff\ufffe')
+                # Remove any lingering non-ASCII or control characters from the line
+                line = ''.join(c for c in line if ord(c) >= 32 and ord(c) < 127 or c in ['\t'])
+                line = line.strip()
                 
                 # Skip empty lines, comments, or lines with only whitespace
                 if not line or line.startswith('#') or len(line) < 4:
@@ -61,6 +76,11 @@ class URLParser:
                 
                 # Skip URLs that are just the protocol
                 if line in ['http://', 'https://']:
+                    continue
+                
+                # Basic sanity check - must contain at least a dot for domain
+                if '.' not in line and ':' not in line:
+                    self.logger.warning(f"Line {line_num}: Invalid format (no domain): {line}")
                     continue
                 
                 # Check if this needs port discovery (IPs only, not hostnames)
