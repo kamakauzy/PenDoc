@@ -26,9 +26,9 @@ Point PenDoc at your targets, go grab coffee (or three), come back to organized 
 
 **Intelligent Port Discovery**: Auto-detects open web ports on bare IPs (80, 443, 8080, 8443, etc.) instead of blindly guessing
 
-**CMS/Technology Fingerprinting**: Automatically detects WordPress, Joomla, Drupal, SharePoint, and more
+**CMS/Technology Fingerprinting**: Automatically detects WordPress, Joomla, Drupal, SharePoint, and 30+ other platforms
 
-**Auto-Generated Pen Test Commands**: Creates ready-to-run command files for testssl.sh, nikto, and wpscan - your downstream testing just got automated
+**Auto-Generated Pen Test Commands**: Creates ready-to-run command files for testssl.sh, nikto, nuclei, wpscan, joomscan, droopescan, and SharePoint enumeration - your downstream testing just got automated
 
 **Multiple Input Sources**: Burp Suite, Nmap, subdomain lists, or just a plain old URL list. We don't judge your workflow.
 
@@ -256,14 +256,47 @@ enrichment:
     - "Content-Security-Policy"
 ```
 
-**Auto-Detected Technologies:**
+**Auto-Detected Technologies (30+):**
+
+*CMSs:*
 - WordPress / WooCommerce
 - Joomla
 - Drupal
 - SharePoint
+- TYPO3
+- Concrete5
+- Umbraco
+- DotNetNuke / DNN
+- Sitefinity
+- Kentico
+- Craft CMS
+- Ghost
+
+*E-Commerce:*
 - Magento
 - PrestaShop
 - Shopify
+- OpenCart
+
+*Forums:*
+- vBulletin
+- phpBB
+- MyBB
+- Discourse
+
+*Wikis/Documentation:*
+- Confluence
+- MediaWiki
+
+*Website Builders:*
+- Wix
+- Squarespace
+
+*Frameworks:*
+- ASP.NET
+- Laravel
+- Django
+- Express
 
 ### Report Settings
 ```yaml
@@ -304,10 +337,38 @@ After screenshotting, PenDoc creates a `commands/` folder with ready-to-run scri
 nikto -h nikto_targets.txt -o nikto_results.htm
 ```
 
+**nuclei Commands** (`run_nuclei.sh`):
+```bash
+# CMS-specific templates automatically applied
+nuclei -l wordpress_targets.txt -t wordpress/
+nuclei -l joomla_targets.txt -t joomla/
+nuclei -l drupal_targets.txt -t drupal/
+nuclei -l all_targets.txt -t cms/
+```
+
 **wpscan Commands** (`run_wpscan.sh`):
 ```bash
-# Auto-generated for detected WordPress sites only
+# Auto-generated for detected WordPress sites
 wpscan --stealthy --url https://wpsite.com --api-token $WPSCAN_TOKEN > wpscan_results.txt
+```
+
+**joomscan Commands** (`run_joomscan.sh`):
+```bash
+# Auto-generated for detected Joomla sites
+joomscan -u https://joomlasite.com > joomscan_results.txt
+```
+
+**droopescan Commands** (`run_droopescan.sh`):
+```bash
+# Auto-generated for detected Drupal sites
+droopescan scan drupal -u https://drupalsite.com > droopescan_results.txt
+```
+
+**SharePoint Enumeration** (`run_sharepoint_enum.sh`):
+```bash
+# Auto-generated for detected SharePoint sites
+curl -k -s https://sharepoint.com/_api/web/lists
+curl -k -s https://sharepoint.com/_vti_bin/listdata.svc
 ```
 
 **Master Script** (`run_all_scans.sh`):
@@ -320,6 +381,10 @@ wpscan --stealthy --url https://wpsite.com --api-token $WPSCAN_TOKEN > wpscan_re
 - `all_targets.txt` - All URLs
 - `domains.txt` - Just domains
 - `ips.txt` - Just IP addresses
+- `wordpress_targets.txt` - WordPress sites only
+- `joomla_targets.txt` - Joomla sites only
+- `drupal_targets.txt` - Drupal sites only
+- `sharepoint_targets.txt` - SharePoint sites only
 
 ### Error Handling (Because Things Break)
 - Graceful timeout handling (won't rage quit on slow sites)
