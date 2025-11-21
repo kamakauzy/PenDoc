@@ -138,8 +138,16 @@ class ScreenshotEngine:
             if self.config['logging']['show_progress']:
                 pbar.close()
             
-            await context.close()
-            await browser.close()
+            # Safe cleanup - catch exceptions if browser/context already closed
+            try:
+                await context.close()
+            except Exception as e:
+                self.logger.debug(f"Context already closed or error during close: {e}")
+            
+            try:
+                await browser.close()
+            except Exception as e:
+                self.logger.debug(f"Browser already closed or error during close: {e}")
             
             return results
     
