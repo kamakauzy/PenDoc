@@ -35,8 +35,15 @@ def scan_existing_screenshots(output_dir: Path) -> list:
     
     # Look for all screenshot files recursively (they're in subdirectories by domain)
     for screenshot_file in sorted(screenshots_dir.rglob('*.png')):
-        # Extract domain from parent directory name
-        domain = screenshot_file.parent.name
+        # Directory structure is: screenshots/domain/desktop/screenshot.png
+        # So parent is "desktop", parent.parent is "domain"
+        viewport_dir = screenshot_file.parent.name  # e.g., "desktop"
+        domain = screenshot_file.parent.parent.name  # e.g., "www.quikrete.com"
+        
+        # Skip if we're not in the expected structure
+        if domain == 'screenshots':
+            # We're at screenshots/screenshot.png (wrong level)
+            domain = screenshot_file.stem
         
         # Create result entry with all expected fields
         result = {
@@ -44,7 +51,7 @@ def scan_existing_screenshots(output_dir: Path) -> list:
             'status': 'success',
             'screenshot': str(screenshot_file.relative_to(screenshots_dir)),
             'screenshots': {
-                'desktop': str(screenshot_file.relative_to(screenshots_dir))
+                viewport_dir: str(screenshot_file.relative_to(screenshots_dir))
             },
             'timestamp': datetime.fromtimestamp(screenshot_file.stat().st_mtime).isoformat(),
             'domain': domain,
