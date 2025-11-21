@@ -38,16 +38,23 @@ def scan_existing_screenshots(output_dir: Path) -> list:
         # Extract domain from parent directory name
         domain = screenshot_file.parent.name
         
-        # Create result entry
+        # Create result entry with all expected fields
         result = {
             'url': f"https://{domain}",
             'status': 'success',
             'screenshot': str(screenshot_file.relative_to(screenshots_dir)),
+            'screenshots': {
+                'desktop': str(screenshot_file.relative_to(screenshots_dir))
+            },
             'timestamp': datetime.fromtimestamp(screenshot_file.stat().st_mtime).isoformat(),
             'domain': domain,
             'source': 'recovered_screenshot',
             'http_headers': {},
-            'technologies': []
+            'technologies': [],
+            'http_status': None,
+            'page_title': None,
+            'scheme': 'https',
+            'port': 443
         }
         results.append(result)
     
