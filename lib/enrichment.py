@@ -8,6 +8,7 @@ from typing import Dict, List
 import requests
 from urllib.parse import urlparse
 import re
+from lib.tech_fingerprinter import TechnologyFingerprinter
 
 
 class EnrichmentEngine:
@@ -16,6 +17,7 @@ class EnrichmentEngine:
     def __init__(self, config: dict):
         self.config = config
         self.logger = logging.getLogger(__name__)
+        self.fingerprinter = TechnologyFingerprinter()
         
         # Setup requests session
         self.session = requests.Session()
@@ -47,13 +49,29 @@ class EnrichmentEngine:
         """Enrich single target with metadata"""
         url = result['url']
         
+        # Fingerprint technologies
+        detected_tech = self.fingerprinter.fingerprint_from_screenshot_result(result)
+        if detected_tech:
+            result['detected_technologies'] = detected_tech
+            # Add to existing technologies list
+            if 'technologies' not in result:
+                result['technologies'] = []
+            for tech in detected_tech:
+                tech_name = tech['name'] if isinstance(tech, dict) else tech
+                if tech_name not in result['technologies']:
+                    result['technologies'].append(tech_name.title())
+        
         # Collect SSL certificate info
         if self.config['enrichment']['collect_ssl_info'] and url.startswith('https'):
             result['ssl_info'] = self._get_ssl_info(url)
         
-        # Detect technologies
+        # Detect technologies (existing method)
         if self.config['enrichment']['detect_technologies']:
-            result['technologies'] = self._detect_technologies(result)
+            existing_tech = self._detect_technologies(result)
+            if existing_tech:
+                if 'technologies' not in result:
+                    result['technologies'] = []
+                result['technologies'].extend([t for t in existing_tech if t not in result['technologies']])
         
         # Extract interesting headers
         if self.config['enrichment']['collect_headers'] and 'http_headers' in result:

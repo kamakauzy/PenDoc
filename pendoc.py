@@ -18,6 +18,7 @@ init()
 from lib.screenshot import ScreenshotEngine
 from lib.enrichment import EnrichmentEngine
 from lib.report_builder import ReportBuilder
+from lib.command_generator import CommandGenerator
 from lib.input_parsers.url_parser import URLParser
 from lib.input_parsers.burp_parser import BurpParser
 from lib.input_parsers.subdomain_parser import SubdomainParser
@@ -173,6 +174,11 @@ class PenDoc:
         report_builder = ReportBuilder(self.config, output_dir)
         report_path = report_builder.generate(results)
         
+        # Generate command files for downstream testing
+        print(f"\n{Fore.CYAN}Generating pen testing command files...{Style.RESET_ALL}\n")
+        command_generator = CommandGenerator(output_dir)
+        command_files = command_generator.generate_all(results)
+        
         # Summary
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
@@ -180,14 +186,26 @@ class PenDoc:
         successful = len([r for r in results if r['status'] == 'success'])
         failed = len([r for r in results if r['status'] == 'failed'])
         
+        # Count WordPress sites
+        wordpress_count = len([r for r in results if r.get('status') == 'success' and 
+                              any('wordpress' in str(t).lower() for t in r.get('detected_technologies', []))])
+        
         print(f"\n{Fore.CYAN}{'='*60}")
         print(f"  Summary")
         print(f"{'='*60}{Style.RESET_ALL}")
         print(f"  Total targets: {len(targets)}")
         print(f"  {Fore.GREEN}Successful: {successful}{Style.RESET_ALL}")
         print(f"  {Fore.RED}Failed: {failed}{Style.RESET_ALL}")
+        if wordpress_count > 0:
+            print(f"  {Fore.YELLOW}WordPress sites: {wordpress_count}{Style.RESET_ALL}")
         print(f"  Duration: {duration:.2f}s")
         print(f"\n  Report: {Fore.YELLOW}{report_path}{Style.RESET_ALL}")
+        
+        if command_files:
+            print(f"\n  {Fore.GREEN}Generated command files:{Style.RESET_ALL}")
+            for tool, path in command_files.items():
+                print(f"    {tool}: {path}")
+        
         print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}\n")
 
 
