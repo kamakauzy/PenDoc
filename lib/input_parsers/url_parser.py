@@ -12,8 +12,8 @@ class URLParser:
     def __init__(self, config: dict):
         self.config = config
         self.logger = logging.getLogger(__name__)
-        # Fast port checker: 1s timeout, 20 concurrent checks
-        self.port_checker = QuickPortChecker(timeout=1.0, max_workers=20)
+        # Balanced port checker: 3s timeout, 10 concurrent (catches more ports without being slow)
+        self.port_checker = QuickPortChecker(timeout=3.0, max_workers=10)
         self.auto_discover_ports = config.get('input', {}).get('auto_discover_ports', True)
     
     def parse(self, file_path: str) -> list:

@@ -22,13 +22,13 @@ class QuickPortChecker:
         9443: 'https',
     }
     
-    def __init__(self, timeout: float = 1.0, max_workers: int = 20):
+    def __init__(self, timeout: float = 3.0, max_workers: int = 10):
         """
         Initialize port checker
         
         Args:
-            timeout: Connection timeout in seconds (default: 1.0 for speed)
-            max_workers: Number of concurrent port checks (default: 20 for speed)
+            timeout: Connection timeout in seconds (default: 3.0 - balanced speed/accuracy)
+            max_workers: Number of concurrent port checks (default: 10 - avoid overwhelming network)
         """
         self.timeout = timeout
         self.max_workers = max_workers
