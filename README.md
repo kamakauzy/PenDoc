@@ -24,11 +24,19 @@ Point PenDoc at your targets, go grab coffee (or three), come back to organized 
 
 **Automated Screenshots**: Full-page screenshots because half a screenshot is useless
 
+**Intelligent Port Discovery**: Auto-detects open web ports on bare IPs (80, 443, 8080, 8443, etc.) instead of blindly guessing
+
+**CMS/Technology Fingerprinting**: Automatically detects WordPress, Joomla, Drupal, SharePoint, and more
+
+**Auto-Generated Pen Test Commands**: Creates ready-to-run command files for testssl.sh, nikto, and wpscan - your downstream testing just got automated
+
 **Multiple Input Sources**: Burp Suite, Nmap, subdomain lists, or just a plain old URL list. We don't judge your workflow.
 
 **Metadata Enrichment**: HTTP headers, status codes, tech detection, SSL analysis - all the metadata you forgot to document manually
 
 **HTML Reports**: Modern, searchable gallery with dark mode (because pen testers don't use light mode, let's be real)
+
+**WAF Bypass**: Realistic browser fingerprinting and headers to avoid getting auto-blocked
 
 **Concurrent Processing**: Parallel capture with progress bars because watching paint dry is boring
 
@@ -95,31 +103,40 @@ python pendoc.py --urls examples/urls.txt --output test_output
 
 ```
 PenDoc/
-├── pendoc.py                    # The main event
+├── pendoc.py                      # The main event
 ├── lib/
-│   ├── input_parsers/           # Parsers for all your weird input formats
-│   │   ├── url_parser.py       # Plain text URLs (exciting!)
-│   │   ├── burp_parser.py      # Burp Suite XML (less exciting!)
-│   │   ├── subdomain_parser.py # Subdomain lists (very exciting!)
-│   │   └── nmap_parser.py      # Nmap XML (moderately exciting!)
-│   ├── screenshot.py            # Where the magic happens
-│   ├── enrichment.py            # Makes your data look fancy
-│   └── report_builder.py        # HTML report generation
+│   ├── input_parsers/             # Parsers for all your weird input formats
+│   │   ├── url_parser.py         # Plain text URLs with smart port discovery
+│   │   ├── burp_parser.py        # Burp Suite XML
+│   │   ├── subdomain_parser.py   # Subdomain lists
+│   │   └── nmap_parser.py        # Nmap XML
+│   ├── screenshot.py              # Playwright magic with WAF bypass
+│   ├── enrichment.py              # Metadata + tech fingerprinting
+│   ├── tech_fingerprinter.py     # CMS/framework detection
+│   ├── command_generator.py      # Auto-generate pen test commands
+│   ├── port_checker.py           # Fast concurrent port scanning
+│   └── report_builder.py          # HTML report generation
 ├── config/
-│   └── pendoc.yaml              # Tweak all the knobs
-└── examples/                     # Sample files so you can't screw up
+│   └── pendoc.yaml                # Tweak all the knobs
+└── examples/                       # Sample files so you can't screw up
 ```
 
 ## Input Formats (We Support Everything)
 
 ### URL Lists (--urls)
-One URL per line. Comments work too. We're not monsters.
+One URL per line. Bare IPs get auto-scanned for common web ports. Comments work too.
 ```
 https://example.com
 https://admin.example.com/login
-http://192.168.1.100:8080
-# This is a comment, genius
+192.168.1.100              # Auto-discovers ports 80, 443, 8080, etc.
+http://192.168.1.101:8443
+# This is a comment
 ```
+
+**Smart Features:**
+- Bare IPs automatically get port-scanned (80, 443, 8080, 8443, etc.)
+- Handles UTF-8, UTF-16, Latin-1, and Windows encoding
+- Strips BOMs and weird characters automatically
 
 ### Burp Suite Sitemap (--burp)
 1. Target → Site map
@@ -215,6 +232,11 @@ input:
   default_protocol: "https"  # HTTPS all the things (it's 2025)
   http_ports: [80, 8000, 8080, 8888, 3000, 5000]
   https_ports: [443, 8443, 9443]
+  port_discovery:            # Auto-detect web ports on bare IPs
+    enabled: true
+    common_web_ports: [80, 443, 8080, 8443, 8000, 8888, 3000, 5000, 7000, 9000]
+    timeout: 3               # Port check timeout (seconds)
+    concurrent_checks: 10    # Parallel port checks
   exclude_patterns:          # Don't screenshot this garbage
     - ".*\\.js$"
     - ".*\\.css$"
@@ -226,13 +248,22 @@ input:
 ```yaml
 enrichment:
   collect_headers: true      # HTTP headers (the good stuff)
-  detect_technologies: true  # "Is that... PHP? In 2025?"
+  detect_technologies: true  # CMS/framework fingerprinting
   collect_ssl_info: true     # Certificate details for the paranoid
   interesting_headers:       # Headers worth highlighting
     - "Server"
     - "X-Powered-By"
     - "Content-Security-Policy"
 ```
+
+**Auto-Detected Technologies:**
+- WordPress / WooCommerce
+- Joomla
+- Drupal
+- SharePoint
+- Magento
+- PrestaShop
+- Shopify
 
 ### Report Settings
 ```yaml
@@ -245,11 +276,50 @@ report:
 
 ## What PenDoc Actually Does
 
+### Screenshot Automation
+- **Full-page captures** with realistic browser fingerprinting
+- **WAF bypass techniques** - valid user agents, realistic headers, anti-detection scripts
+- **Concurrent processing** - multiple targets at once
+- **Smart retries** - doesn't give up on the first failure
+
 ### Metadata Enrichment
 - **HTTP Information**: Status codes, headers, timing, page titles (the basics)
 - **Security Headers**: Server, X-Powered-By, CSP, X-Frame-Options, HSTS (the security stuff)
-- **Technology Detection**: Nginx? Apache? IIS? PHP? ASP.NET? We'll find it.
+- **Technology Detection**: WordPress, Joomla, Drupal, SharePoint, and more
 - **SSL/TLS Analysis**: Certificate info, expiration dates, all that PKI nonsense
+
+### Auto-Generated Pen Test Commands
+After screenshotting, PenDoc creates a `commands/` folder with ready-to-run scripts:
+
+**testssl.sh Commands** (`testssl_cmds.txt` + `run_testssl.sh`):
+```bash
+# Automatically generated for all HTTPS sites
+--vulnerable --cipher-per-proto --html domain1.com
+--vulnerable --cipher-per-proto --html domain2.com
+```
+
+**nikto Commands** (`nikto_targets.txt` + `run_nikto.sh`):
+```bash
+# All discovered web services
+nikto -h nikto_targets.txt -o nikto_results.htm
+```
+
+**wpscan Commands** (`run_wpscan.sh`):
+```bash
+# Auto-generated for detected WordPress sites only
+wpscan --stealthy --url https://wpsite.com --api-token $WPSCAN_TOKEN > wpscan_results.txt
+```
+
+**Master Script** (`run_all_scans.sh`):
+```bash
+# Run all generated scans in one command
+./run_all_scans.sh
+```
+
+**Target Lists**:
+- `all_targets.txt` - All URLs
+- `domains.txt` - Just domains
+- `ips.txt` - Just IP addresses
 
 ### Error Handling (Because Things Break)
 - Graceful timeout handling (won't rage quit on slow sites)
